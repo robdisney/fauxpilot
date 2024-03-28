@@ -23,7 +23,7 @@ ENVIRONMENT REQUIREMENTS:
     - workspace-name (eg: myLogAnalyticsWorkspace) # Log Analytics Workspace where Sentinel Lives
  
   - An Azure Machine Learning Workspace with CPU compute
-  - An Azure OpenAI Instance with a deployed Azure OpenAI Model
+  - An Azure OpenAI Instance with a deployed Azure OpenAI Model (preferably gpt-4-1106-preview model, i.e. max tokens @ 128k to prevent token overload)
   - A Log Analytics Workspace
   - A Sentinel instance deployed to the Log Analytics Workspace
   - 
