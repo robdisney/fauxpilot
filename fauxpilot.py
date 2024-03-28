@@ -7,7 +7,7 @@ from openai import AzureOpenAI
 credential = DefaultAzureCredential()
 
 # Replace with your Key Vault name (DNS Name)
-key_vault_uri = "https://fauxpilot.vault.azure.net/"
+key_vault_uri = "https://<your_key_vault_name>.vault.azure.net/"
 
 # Initialize the SecretClient
 secret_client = SecretClient(vault_url=key_vault_uri, credential=credential)
@@ -75,7 +75,8 @@ class ChatGPT:
     def __init__(self, client, model):
         self.client = client
         self.model = model
-
+      
+    # Adjust parameters below to meet your own requirements
     def generate_response(self, prompt):
         response = self.client.chat.completions.create(
             model=self.model,
