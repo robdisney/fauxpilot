@@ -9,7 +9,7 @@ import json
 credential = DefaultAzureCredential()
 
 # Replace with your Key Vault name (DNS Name)
-key_vault_uri = "https://fauxpilot.vault.azure.net/"
+key_vault_uri = "https://<your_keyvault_name>.vault.azure.net/"
 
 # Initialize the SecretClient
 secret_client = SecretClient(vault_url=key_vault_uri, credential=credential)
@@ -28,10 +28,7 @@ client = AzureOpenAI(api_version=openaiapi_version,
                      azure_endpoint=openaiapi_base,
                      api_key=openaiapi_key)
 
-# receive incident number from sentinel incident trigger
-# insert incident_id entry function here. 
-#incident_id = '3843f84f-1c16-48b8-a32c-e13e95f5babf'
-
+# Define class for accessing Sentinel API
 class SentinelAPI:
     def __init__(self, subscription_id, resource_group, workspace_name):
         self.subscription_id = subscription_id
@@ -125,6 +122,7 @@ def find_incident_id(incidents, incident_number):
             return incident.get('name')
     return None
 
+# extracts the json file from chatgpt's task creation response
 def parse_json(input_string):
     # Find the first opening brace
     start_index = input_string.find('{')
@@ -139,6 +137,7 @@ def parse_json(input_string):
     json_content = input_string[start_index:end_index + 1]
     return json_content
 
+# Main function (this is where the magic happens)
 def main():
     sentinel_api = SentinelAPI(subscription_id, resource_group, workspace_name)
     chatgpt = ChatGPT(client, model)
