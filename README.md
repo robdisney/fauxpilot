@@ -21,6 +21,7 @@ ENVIRONMENT REQUIREMENTS:
     - subscription-id (eg: a05016a1-fbe5-4d43-b569-ebddccaf5069) # Your subscription ID where Sentinel lives
     - resource-group (eg: myResourceGroup) # Resource Group where Sentinel lives
     - workspace-name (eg: myLogAnalyticsWorkspace) # Log Analytics Workspace where Sentinel Lives
+    - NOTE:  ALL OF THE SAMPLE SECRETS ABOVE ARE FAKE
  
 - An Azure Machine Learning Workspace with CPU compute
 - An Azure OpenAI Instance with a deployed Azure OpenAI Model (preferably gpt-4-1106-preview model, i.e. max tokens @ 128k to prevent token overload)
