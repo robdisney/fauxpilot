@@ -22,11 +22,11 @@ ENVIRONMENT REQUIREMENTS:
     - resource-group (eg: myResourceGroup) # Resource Group where Sentinel lives
     - workspace-name (eg: myLogAnalyticsWorkspace) # Log Analytics Workspace where Sentinel Lives
  
-  - An Azure Machine Learning Workspace with CPU compute
-  - An Azure OpenAI Instance with a deployed Azure OpenAI Model (preferably gpt-4-1106-preview model, i.e. max tokens @ 128k to prevent token overload)
-  - A Log Analytics Workspace
-  - A Sentinel instance deployed to the Log Analytics Workspace
-  - 
+- An Azure Machine Learning Workspace with CPU compute
+- An Azure OpenAI Instance with a deployed Azure OpenAI Model (preferably gpt-4-1106-preview model, i.e. max tokens @ 128k to prevent token overload)
+- A Log Analytics Workspace
+- A Sentinel instance deployed to the Log Analytics Workspace
+
 PRIVILEGE REQUIREMENTS:
   - Admin must have all privileges associated with creating & administering the above services
     - In Azure Key Vault, assign role "Key Vault Secrets User" to the Azure Machine Learning instance's managed identity
