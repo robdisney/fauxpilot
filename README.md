@@ -1,67 +1,135 @@
-# fauxpilot
-Generative AI enablement for Microsoft Security
+Fauxpilot gov setup documentation
 
-DISCLAIMER: 
-This solution was developed entirely by its author as a personal project.  The code is intended to extend a capability of Generative AI to Microsoft Sentinel.  It should not be viewed as a drop-in replacement for Microsoft Copilot for Security.  In its current form, Fauxpilot is much less capable than the expansive offerings of CfS, but does provide the ability to query an LLM about Sentinel Incidents. The Fauxpilot capability and associated scripts herein are not officially supported by Microsoft, though all of its core components are fully supported (Azure Key Vault, Azure Machine Learning Workspace, Azure OpenAI instance, Azure Log Analytics, Microsoft Sentinel, Jupyter Notebooks, etc).  User accepts all risk associated with its use.  User should employ extensive testing and evaluation before deploying to a production environment, and even then should verify the information contained within Fauxpilot response. Author bears no responsibility for loss or damages resulting from its use.  User may modify at will to suit their needs. Happy coding!
+Note:  These instructions will only work for azure government clouds, i.e. portal.azure.us.  
+    Fauxpilot for Azure Commercial can be found in either:
+        - https://github.com/robdisney/fauxpilot
+        - https://hub.docker.com/robdisney/fauxpilot 
+    These instructions assume you already have an azure tenant, subscription, Log Analytics Workspace with Sentinel deployed, and permissions to perform the actions below.
 
-OVERVIEW:
-These scripts broker a transaction between Microsoft Sentinel API and Azure OpenAI services.  This allows an Azure OpenAI model (i.e. gpt3, gpt4) to analyze a microsoft incident at the user's request.
+Open the Azure Government Portal
+- https://portal.azure.us
+- Sign in with your credentials
 
-PURPOSE:
-Fauxpilot: "fauxpilot.py" grants the user the ability to enter an incident number (i.e. 101, 1248, etc) and then ask questions about the specified incident.  The user can request to restart and ask a new question about a new incident.  SentinelGPT.py allows a user to enter an incident number, and chatgpt will analyze that incident number and directly inject a detailed incident report to Sentinel's "activity log", and individual remediation checklist items into Sentinel's "Tasks" function.  The user can then access these reports/tasks through the Sentinel Incident panel.
+Key Vault Initial Setup
+- Create new key vault for your faux pilot project
+- Assign yourself key vault secrets officer
+    - Select “Access Control” blade at left
+    - Select “Add Role Assignment” at bottom
+    - Select “Key Vault Secrets Officer” from the list
+    - Click “Next” at bottom
+    - Ensure “User, group, or service principal” is selected
+    - Click “Add Members”
+    - Find and select your user (or users) 
+    - Ensure your users are listed under “Selected Members” at bottom
+    - Click “Select” at bottom
+    - Click “Review and Assign” at the bottom of the page
+    - Click “Review and Assign” again
 
-As currently written, both of these scripts are designed to be run from an Azure Machine Learning notebook.  They can be launched from within Sentinel or from the azure machine learning function.
+Key Vault Keys
+- Open your key vault
+- Select “Secrets” blade from the left of the screen
+- Create 8 new secrets with the following names:
+    - aoai-api-version
+    - aoai-deployment
+    - aoai-endpoint
+    - aoai-key
+    - sentinel-api-version
+    - sentinel-resource-group
+    - sentinel-subscription-id
+    - sentinel-workspace-name
+- Assign each of them their respective values
 
-ENVIRONMENT REQUIREMENTS:
-- An Azure Key Vault with the following secrets:
-    - version (eg: 03-31-2023) # The most current sentinel API version.  Check Sentinel Rest API documentation at learn.microsoft.com/
-    - base (eg: https://gpt-4.openai.azure.com/ # The name of your Azure OpenAI instance
-    - key (eg: 209387102938s2af908wj3lkwejr89pp3j2) # Your Azure OpenAI API key
-    - model (eg: gpt4) # whatever you named your specific Azure OpenAI model deployment
-    - subscription-id (eg: a05016a1-fbe5-4d43-b569-ebddccaf5069) # Your subscription ID where Sentinel lives
-    - resource-group (eg: myResourceGroup) # Resource Group where Sentinel lives
-    - workspace-name (eg: myLogAnalyticsWorkspace) # Log Analytics Workspace where Sentinel Lives
-    - NOTE:  ALL OF THE SAMPLE SECRETS ABOVE ARE FAKE
- 
-- An Azure Machine Learning Workspace with CPU compute
-- An Azure OpenAI Instance with a deployed Azure OpenAI Model (preferably gpt-4-1106-preview model, i.e. max tokens @ 128k to prevent token overload)
-- A Log Analytics Workspace
-- A Sentinel instance deployed to the Log Analytics Workspace
+Create your Fauxpilot Web App
+- From the azure portal home page, type “app services” in the search bar
+- Select “App Services” from the drop down list
+- At the App Services window, click “Create”
+- Choose your desired subscription and resource group
+- Choose a unique name (i.e. fauxpilot-webapp-#####)
+- Choose “Docker Container”
+- For operating system, choose “Linux”
+- Choose Region (if it fails to deploy, try a different region)
+- Choose your pricing plan
+- Click “Next: Database” 
+    - Make no changes on this page
+- Click “Next: Docker”
+    - Click the drop down that says “Quickstart” and Choose “Docker Hub” instead
+    - Under “Image and Tag” type:  robdisney/fauxpilotgov:latest
+- Click “Next: Networking”
+    - Make no changes on this page
+- Click “Next: Monitoring”
+    - Make changes if desired
+- Click “Next: Tags”
+    - Add tags if desired
+- Click “Next: Review and Create”
+- Click “Review and Create”
+- Once your app service is created, click “Go to Resource” 
 
-PRIVILEGE REQUIREMENTS:
-  - Admin must have all privileges associated with creating & administering the above services
-    - In Azure Key Vault, assign role "Key Vault Secrets User" to the Azure Machine Learning instance's managed identity
-    - In Log Analytics Workspace, assign role "Sentinel Responder" to the Azure Machine Learning instance's managed identity
-   
-INITIAL SETUP (ONCE REQUIREMENTS ABOVE ARE MET):
-- Create a new AML Jupyter notebook called "fauxpilot".
-- Create two new files called "fauxpilot.py" and "sentinelgpt.py" and copy/paste the contents of the respective files into your workspace
-- Update the keyvault endpoint with your own keyvault name
+Modify web app
+- Stop the web app via “Stop” at the top
+- From the left navigation, click “Environment Variables”
+- Under “Environment Variables”, click “Add”
+    - Under Name, type: KEY_VAULT_URI
+    - Under Value, enter your key vault address, 
+    - Click apply
+- Click Apply again and select Confirm to save the variable
 
-INITIAL USE (FAUXPILOT):
-- Open your FauxPilot Notebook via either Sentinel or the Azure Machine Learning Workspace
-- Open a new terminal in the Notebook
-- Type "python fauxpilot.py" and press enter.
-- When asked what incident you would like to analyze, enter your incident number
-- When asked what you want to ask about the incident, enter your question/prompt.
+Give the web app a System-assigned Identity
+- Click on “Identity” blade
+- In center of screen, change status slider to “On”
+- Click “Save”
+    - At the pop up that reads “Enable System Assigned Managed Identity”, click Yes
 
-INITIAL USE (SENTINELGPT):
-- Open your FauxPilot Notebook via either Sentinel or the Azure Machine Learning Workspace
-- Open a new terminal in the Notebook
-- Type "python sentinelgpt.py" and press enter.
-- When asked what incident you would like to analyze, enter your incident number
-- once it runs, go back and check your sentinel incident.  Note: You may need to refresh/reload the page to view the newly-commented incident.
+Set up authentication to the website
+- On the left, choose “Authentication”
+- Choose “Add identity provider”
+    - Under “Select Identity Provider”, choose “Microsoft”
+    - Ensure “Create New App Registration” is selected
+    - Under Client Secret Expiration, choose your expiration period (180 days is default)
+    - Under “supported account types”, choose whom you want to be able to use your app (I recommend Current Tenant)
+    - Leave the remainder of the items at default
+ - Save
+    
+Add key vault permissions for app
+- On your faux pilot key vault, select “Access Control”
+- Select “Add Role Assignment”
+- Select “Key Vault Secrets User” and click “Next”
+- On the next screen, select “Managed Identity”, then click the “+ select members” symbol below it
+- From the pop-out on the right, select the managed identity drop-down and click “App Service”
+- Click on your Fauxpilot app service name
+- Click “Select” at the bottom of the pop-out
+- Click “Review and Assign” at the bottom of the page
+- Click “Review and Assign” again
+- Now your fauxpilot app can read all the secrets in the fauxpilot key vault
 
-SAMPLE PROMPTS:
-- "What Mitre attack tactics were employed in the attack, and what can they tell me about the attacker?"
-- "Write a detailed narrative in paragraph form describing what happened in this incident"
-- "How should i respond to this incident?  Should I dismiss, remediate, or escalate to tier 2?"
-- "write a detailed remediation checklist to respond to this incident"
+Add Log Analytics permissions for app
+- Open your selected Log Analytics Workspace
+- Click on Access Control
+- Select “Add Role Assignment”
+- Select “Microsoft Sentinel Responder” and click “Next”
+- On the next screen, select “Managed Identity”, then click the “+ select members” symbol below it
+- From the pop-out on the right, select the managed identity drop-down and click “App Service”
+- Click on your Fauxpilot app service name
+- Click “Select” at the bottom of the pop-out
+- Click “Review and Assign” at the bottom of the page
+- Click “Review and Assign” again
+- Now your fauxpilot app can use the Log Analytics Workspace for the Sentinel instance
 
-LIMITATIONS:
-1. The application cannot currently perform cross-incident query or multi-incident aggregation.  
-2. Fauxpilot creates very attractive KQL queries to investigate incidents, but rarely work as written.  Some tinkering with RAG architecture (i.e. loading KQL queries into a storage container as RAG data store) may prove effective at improving KQL effectiveness.  A skilled KQL author can easily modify the produced KQL queries to function properly, as they are "mostly" correct.
-3. The script does not remember previous queries or responses.  Each query/prompt must be designed its own.  Future iterations may include this capability as token limitations allow.
+Start your Fauxpilot web app
+- Return to the Fauxpilot web app service
+- Select Overview blade if not already there
+- Click “Start” at the top
 
-THE FUTURE:   
-Future iterations of this effort will include Azure Functions that will automate the injectReport and injectTasks functions as part of a Logic App.  Then, every time a new Sentinel Incident is created, the app can automatically inject tasks and an incident report into the sentinel incident page, saving triage analysts time and energy.
+Open your new Fauxpilot web app
+- On the Fauxpilot web app service Overview page, hover over “default domain” at top right and click the “copy to clipboard” icon that pops up to the right of it
+- In your browser, open a new tab
+- Use control-v or right click and paste in the address bar and click “return”
+- If it does not work immediately, give it a few minutes for the url to propagate through dns and try again.
+
+Make your first query
+- In the “Incident Number” text entry at bottom, enter your incident number
+- In the “Your Message” text entry at bottom, enter your question about the incident
+- Press enter from within the Your Message field
+- Wait for the answer
+
+A few notes: 
+- The interface is not fast.  It is not currently built for asynchronous response, so you do not see the response until the entire question has been built on the Azure OpenAI side.  Be patient.  

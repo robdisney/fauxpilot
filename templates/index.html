@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fauxpilot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Security Fauxpilot</h1>
+    </header>
+    <main>
+        <div id="chat-container">
+            <div id="log"></div>
+            <div id="inputs">
+                <input type="text" id="incident-number" placeholder="Incident Number">
+                <input type="text" id="user-input" placeholder="Your Message" onkeypress="handleKeyPress(event)">
+                <button id="new-topic-btn" onclick="newTopic()">New Topic</button>
+            </div>
+        </div>
+    </main>
+    <script>
+        function sendMessage() {
+            const incidentNumber = document.getElementById("incident-number").value;
+            const userInput = document.getElementById("user-input").value;
+            const log = document.getElementById("log");
+
+            if (!userInput.trim()) return; // Prevent sending empty messages
+
+            log.innerHTML += `<div class="user-message">${userInput}</div>`;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    incident_number: incidentNumber,
+                    user_input: userInput
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                log.innerHTML += `<div class="gpt-response">${data.response}</div>`;
+                document.getElementById("user-input").value = ""; // Clear the input field
+                log.scrollTop = log.scrollHeight;
+            });
+        }
+
+        function newTopic() {
+            fetch('/new_topic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const log = document.getElementById("log");
+                log.innerHTML = `<div class="gpt-response">${data.response}</div>`;
+                document.getElementById("incident-number").value = "";
+                document.getElementById("user-input").value = "";
+                log.scrollTop = log.scrollHeight;
+            });
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
