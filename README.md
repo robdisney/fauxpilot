@@ -1,13 +1,13 @@
-Fauxpilot gov setup documentation
+Fauxpilot commercial setup documentation
 
-Note:  These instructions will only work for azure government clouds, i.e. portal.azure.us.  
-    Fauxpilot for Azure Commercial can be found in either:
-        - https://github.com/robdisney/fauxpilot
-        - https://hub.docker.com/robdisney/fauxpilot 
+Note:  These instructions will only work for azure commercial clouds, i.e. portal.azure.com  
+    Fauxpilot for Azure Government can be found in either:
+        - https://github.com/robdisney/fauxpilotgov
+        - https://hub.docker.com/robdisney/fauxpilotgov 
     These instructions assume you already have an azure tenant, subscription, Log Analytics Workspace with Sentinel deployed, and permissions to perform the actions below.
 
-Open the Azure Government Portal
-- https://portal.azure.us
+Open the Azure Commercial Portal
+- https://portal.azure.com
 - Sign in with your credentials
 
 Key Vault Initial Setup
