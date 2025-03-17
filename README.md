@@ -53,7 +53,7 @@ Create your Fauxpilot Web App
     - Make no changes on this page
 - Click “Next: Docker”
     - Click the drop down that says “Quickstart” and Choose “Docker Hub” instead
-    - Under “Image and Tag” type:  robdisney/fauxpilotgov:latest
+    - Under “Image and Tag” type:  robdisney/fauxpilot:latest
 - Click “Next: Networking”
     - Make no changes on this page
 - Click “Next: Monitoring”
